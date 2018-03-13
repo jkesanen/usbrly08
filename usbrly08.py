@@ -183,6 +183,8 @@ def main():
     ap = argparse.ArgumentParser(description="USB-RLY controlling tool version %s" % (__version__))
 
     ap.add_argument('-p', '--port', help='Serial port of the USB-RLY device', required=True)
+    ap.add_argument('-t', '--timeout', metavar='SECONDS',
+                    type=int, help='Timeout for serial communications')
 
     controlGroup = ap.add_argument_group('control')
     controlGroup.add_argument('-a', '--all-relays',
@@ -203,7 +205,7 @@ def main():
     args = ap.parse_args()
 
     # Open the requested serial port
-    s = serial.Serial(args.port)
+    s = serial.Serial(args.port, timeout=args.timeout)
     r = usbrly(s)
 
     # Handle -a / --all-relays
@@ -237,6 +239,8 @@ def main():
     if args.get_version:
         version = r.get_sw_version()
         print("%.2x %.2x" % (version[0], version[1]))
+
+    s.close()
 
 
 if __name__ == "__main__":
