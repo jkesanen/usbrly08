@@ -45,6 +45,7 @@ Should also work on following models (control commands are the same):
 Tested with python versions 2.7.14 and 3.6.4."""
 
 from __future__ import print_function
+import struct
 
 __author__ = "Jani Kesänen"
 __copyright__ = "Copyright 2018, Jani Kesänen"
@@ -113,10 +114,15 @@ class usbrly():
         """Get states of all relays.
 
         Returns:
-            uint8 sized value for relay states [0, 255]
+            An int value representing the relay states [0, 255]
         """
         self.fd.write([self.CMDS["GET_STATES"]])
-        return self.fd.read(1)
+        states = self.fd.read(1)
+
+        if len(states) != 1:
+            raise OSError("get_states failed to read the requested number of bytes")
+
+        return struct.unpack('B', states)[0]
     
 
     def set_all(self, state):
@@ -140,17 +146,27 @@ class usbrly():
             A string of 8 bytes containing the board's serial number
         """
         self.fd.write([self.CMDS["GET_SERIAL"]])
-        return self.fd.read(8)
+        serial = self.fd.read(8)
+
+        if len(serial) != 8:
+            raise OSError("get_serial failed to read the requested number of bytes")
+
+        return serial.decode('ascii')
 
 
     def get_sw_version(self):
         """Get the software version of the board.
 
         Returns:
-            Two bytes, starting with module id and followed by software version.
+            A tuple of two bytes: module id and software version.
         """
         self.fd.write([self.CMDS["GET_SW_VERSION"]])
-        return self.fd.read(2)
+        version = self.fd.read(2)
+
+        if len(version) != 2:
+            raise OSError("get_sw_version failed to read the requested number of bytes")
+
+        return struct.unpack("BB", version)
 
 
 def main():
@@ -208,14 +224,14 @@ def main():
 
     # Handle -g / --relays
     if args.relays:
-        states = r.get_states()[0]
+        states = r.get_states()
         print("0x%.2x" % (states))
         for i in range(0, 8):
             print("%u %s" % (i, 'on' if states & 1 << i else 'off'))
 
     # Handle -s / --get-serial
     if args.get_serial:
-        print(r.get_serial().decode('ascii'))
+        print(r.get_serial())
 
     # Handle -i / --get-version
     if args.get_version:
