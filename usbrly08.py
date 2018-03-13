@@ -86,7 +86,7 @@ class usbrly():
             controlByte = self.CMDS["FIRST_ON"] + relay
         else:
             controlByte = self.CMDS["FIRST_OFF"] + relay
-        print("set: %u" % controlByte)
+
         self.fd.write([controlByte])
 
 
