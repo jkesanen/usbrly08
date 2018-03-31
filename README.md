@@ -9,6 +9,8 @@ In addition to USBRLY08-B, usbrly08.py should also work with following models, a
 * USBRLY16
 * USBRLY16L
 
+![USBRLY08-B](https://jkesanen.github.io/usbrly08b.jpg)
+
 ## Usage example as a library
 
 ```
