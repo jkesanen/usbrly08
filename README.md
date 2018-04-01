@@ -50,6 +50,8 @@ Use command line parameter `--help` for usage.
 
 On one Macbook I've noticed using many `-n` switches doesn't always work reliably. If parameters `-n 0 -n 1 -n 2 -n 3 -n 4 -n 5 -n 6 -n 7` are specified, sometimes all relays aren't enabled. It might be related to timing, that the module is not able to receive many commands in series. Adding 1 ms delay (time.sleep(0.001)) between the sets fixed the issue. On Windows computers this hasn't reproduced.
 
+The best alternative is to use -r/--set-relays argument, which takes a value between 0-255 (0x00-0xff) and sets the relays according to the given bitmask with one command.
+
 ## Notice
 
 The author of this code is not associated with the company manufacturing and selling the hardware. This code has been developed to fulfill the personal needs of the author. If you have hardware related questions, please contact the manufacturer.
