@@ -45,6 +45,7 @@ Should also work on following models (control commands are the same):
 Tested with python versions 2.7.14 and 3.6.4."""
 
 from __future__ import print_function
+import argparse
 import struct
 
 __author__ = "Jani Kesänen"
@@ -99,7 +100,7 @@ class usbrly():
                 0x01 = turns on 1st relay
                 0x08 = turns on 4th relay
                 0x0A = turns on 2nd and 4th relays
-                0xF1 = turns on 1st and 8th relays
+                0x81 = turns on 1st and 8th relays
         """
         if type(states) != int:
             raise ValueError("states must be given as an int")
@@ -169,8 +170,22 @@ class usbrly():
         return struct.unpack("BB", version)
 
 
+class Uint8ValueAction(argparse.Action):
+    def __init__(self, option_strings, dest, nargs=None, **kwargs):
+        if nargs is not None:
+            raise ValueError("nargs not allowed")
+        super(Uint8ValueAction, self).__init__(option_strings, dest, **kwargs)
+    def __call__(self, parser, namespace, values, option_string=None):
+        if values.startswith('0x'):
+            value = int(values, 16)
+        else:
+            value = int(values)
+        if value < 0 or value > 255:
+            raise ValueError("Value must be between 0-255.")
+        setattr(namespace, self.dest, value)
+
+
 def main():
-    import argparse
     import sys
 
     try:
@@ -193,6 +208,8 @@ def main():
                               type=int, choices=range(0, 8), action='append')
     controlGroup.add_argument('-f', '--relay-off', help='Set a relay to OFF state',
                               type=int, choices=range(0, 8), action='append')
+    controlGroup.add_argument('-r', '--set-relays', help='Set the state of relays by 8-bit value (0-255, 0x00-0xff)',
+                              metavar='value', action=Uint8ValueAction)
 
     queryGroup = ap.add_argument_group('query')
     queryGroup.add_argument('-g', '--relays', help='Get the state of the relays', action='store_true')
@@ -223,6 +240,10 @@ def main():
     if args.relay_off:
         for relay in args.relay_off:
             r.set_state(relay, False)
+
+    # Handle -r / --set-relays
+    if args.set_relays:
+        r.set_states(args.set_relays)
 
     # Handle -g / --relays
     if args.relays:
